@@ -1,0 +1,182 @@
+{
+  "info": {
+    "name": "Spotter Fuel Route API \u2014 Codex version",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base",
+      "value": "http://127.0.0.1:8766"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Plan a cross-country trip (full tank)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base}}/api/route/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"start\": \"New York, NY\",\n  \"finish\": \"Los Angeles, CA\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Plan succeeded', () => pm.response.to.have.status(200));",
+              "const plan = pm.response.json();",
+              "pm.test('At most two routing requests', () => pm.expect(plan.meta.routing_api_calls).to.be.at.most(2));",
+              "pm.test('Purchase total reconciles', () => pm.expect(Math.round(plan.fuel_stops.reduce((sum, s) => sum + s.cost, 0) * 100)).to.equal(Math.round(plan.summary.total_fuel_cost * 100)));",
+              "if (plan.fuel_stops.length) pm.collectionVariables.set('avoid_station_id', plan.fuel_stops[0].station.id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Repeat the same trip: cached roads and plan",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base}}/api/route/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"start\": \"New York, NY\",\n  \"finish\": \"Los Angeles, CA\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Avoid the first station from request 1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base}}/api/route/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"start\": \"New York, NY\",\n  \"finish\": \"Los Angeles, CA\",\n  \"avoid_station_ids\": [{{avoid_station_id}}]\n}"
+        }
+      }
+    },
+    {
+      "name": "Printable trip brief",
+      "request": {
+        "method": "GET",
+        "url": "{{base}}/api/route/brief/?start=New%20York%2C%20NY&finish=Los%20Angeles%2C%20CA"
+      }
+    },
+    {
+      "name": "2. Truck departs with 20 gal (from the ELD)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base}}/api/route/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"start\": \"Chicago, IL\",\n  \"finish\": \"Houston, TX\",\n  \"start_fuel_gallons\": 20\n}"
+        }
+      }
+    },
+    {
+      "name": "3. Street address as start (GET)",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{base}}/api/route/?start=1600 Pennsylvania Ave NW, Washington, DC&finish=Austin, TX",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "api",
+            "route",
+            ""
+          ],
+          "query": [
+            {
+              "key": "start",
+              "value": "1600 Pennsylvania Ave NW, Washington, DC"
+            },
+            {
+              "key": "finish",
+              "value": "Austin, TX"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "4. Lowest fuel purchases among available routes",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base}}/api/route/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"start\": \"47.6062,-122.3321\",\n  \"finish\": \"25.7617,-80.1918\",\n  \"stop_penalty\": 0,\n  \"driver_hourly_cost\": 0\n}"
+        }
+      }
+    },
+    {
+      "name": "5. Error: location outside the USA",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base}}/api/route/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"start\": \"Boston, MA\",\n  \"finish\": \"Toronto, ON\"\n}"
+        }
+      }
+    },
+    {
+      "name": "6. Error: below the fuel reserve",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{base}}/api/route/",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"start\": \"Dallas, TX\",\n  \"finish\": \"Denver, CO\",\n  \"start_fuel_gallons\": 3\n}"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,117 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#174e3c">
+  <title>{% if plan %}{{ form.start }} to {{ form.finish }} · {% endif %}Spotter Fuel Planner</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Overpass:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+  <link rel="stylesheet" href="{% static 'routing/planner.css' %}">
+</head>
+<body{% if not plan %} class="empty"{% endif %}>
+  <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+    <symbol id="i-route" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M9 6h6a4 4 0 0 1 0 8H9a3 3 0 0 0 0 6h6"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3l-5.6 2.9 1.1-6.2L3 9.6l6.2-.9Z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 0 1 14 0Z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M8 20V4m-4 4 4-4 4 4m4-4v16m-4-4 4 4 4-4"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M6 18 18 6"/></symbol>
+    <symbol id="i-fuel" viewBox="0 0 24 24"><path d="M4 21V4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v17M2 21h14M4 11h10m0 4h2a2 2 0 0 1 2 2v1a2 2 0 0 0 4 0V9l-4-4"/><path d="M19 6v4h3"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M9 3H3v6m12-6h6v6M3 15v6h6m12-6v6h-6"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M14 4h6v6m0-6L10 14M10 4H4v16h16v-6"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  </defs></svg>
+  <header class="topbar">
+    <a class="brand" href="/api/route/map/" aria-label="Spotter fuel planner home"><span class="brand-mark"><svg class="icon"><use href="#i-route"/></svg></span><span>spotter<span class="brand-divider">/</span><span class="brand-product">Fuel planner</span></span></a>
+    <div class="top-actions"><span class="dataset-tag"><span></span>US fuel planning</span><button class="text-button" id="how-it-works" type="button" aria-label="How it works"><svg class="icon"><use href="#i-info"/></svg><span>How it works</span></button>{% if plan %}<a class="outline-button" id="api-link" href="/api/route/" target="_blank" rel="noopener">View API <svg class="icon"><use href="#i-link"/></svg></a>{% endif %}</div>
+  </header>
+  <main class="workspace">
+    <aside class="sidebar" aria-label="Trip planner">
+      <section class="trip-panel">
+        {% if plan %}
+          <div class="eyebrow"><span class="status-dot"></span>Your fuel plan</div>
+          <h1 class="trip"><span id="from"></span><svg class="icon"><use href="#i-arrow"/></svg><span id="to"></span></h1>
+          <dl class="facts" id="facts"></dl>
+          <p class="drive-note">Driving time excludes fuel stops, breaks and overnight rest.</p>
+          <div class="cost-card"><div class="cost"><div><span class="label">Fuel to purchase</span><span class="amount" id="amount"></span></div><span class="cost-icon"><svg class="icon"><use href="#i-fuel"/></svg></span></div><p class="cost-note" id="cost-note"></p><p class="savings" id="savings" hidden></p></div>
+          <div class="stale-banner" id="stale" role="status" hidden><svg class="icon"><use href="#i-info"/></svg><div><span>Trip changed. Update the plan to recalculate your route and costs.</span><button type="button" id="discard-edits">Discard edits</button></div></div>
+          <div class="trip-tools"><a id="brief-link" class="outline-button" href="#" target="_blank" rel="noopener">Trip brief <svg class="icon"><use href="#i-link"/></svg></a><button type="button" id="copy-trip" class="text-button">Copy trip link</button></div>
+          <p class="action-status" id="action-status" role="status" aria-live="polite"></p>
+        {% else %}
+          <div class="eyebrow">Less spent. More miles.</div>
+          <h1 class="welcome-title">Plan your fuel stops.</h1>
+          <p class="intro">Find where to stop, how much to buy, and what your trip will cost.</p>
+        {% endif %}
+        {% if error %}<div class="notice" role="alert" tabindex="-1"><strong>We couldn't plan this trip.</strong><p>{{ error }}</p><span>Your trip details are saved below. Adjust them and try again.</span></div>{% endif %}
+        <div class="notice" id="request-error" role="alert" tabindex="-1" hidden></div>
+        <details class="replan" id="replan"{% if not plan or error %} open{% endif %}>
+          <summary><span>{% if plan %}Edit trip{% else %}Your trip{% endif %}</span><svg class="icon"><use href="#i-chevron"/></svg></summary>
+          <form class="plan" method="get" id="trip-form" autocomplete="off">
+            {% for station_id in form.avoid_station_ids %}<input type="hidden" name="avoid_station_ids" value="{{ station_id }}">{% endfor %}
+            <div class="endpoints">
+              <div class="field endpoint" data-endpoint="start">
+                <label for="start"><span class="endpoint-dot"></span>Start</label>
+                <div class="input-wrap"><input id="start" name="start" value="{{ form.start }}" placeholder="City, state or address" required role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="start-list" aria-describedby="start-note"{% if errors.start %} aria-invalid="true"{% endif %}><button class="clear-field icon-button" type="button" data-clear="start" aria-label="Clear start"><svg class="icon"><use href="#i-close"/></svg></button></div>
+                <ul class="suggest" id="start-list" role="listbox" hidden></ul>
+                <div class="field-footer"><span class="pin-note" id="start-note"></span><button class="pick-pin" type="button" data-pick="start" aria-pressed="false"><svg class="icon"><use href="#i-pin"/></svg>Set on map</button></div>
+              </div>
+              <button class="swap-button icon-button" type="button" id="swap-pins" aria-label="Swap start and destination" title="Swap start and destination"><svg class="icon"><use href="#i-swap"/></svg></button>
+              <div class="field endpoint" data-endpoint="finish">
+                <label for="finish"><span class="endpoint-dot finish-dot"></span>Destination</label>
+                <div class="input-wrap"><input id="finish" name="finish" value="{{ form.finish }}" placeholder="Where are you headed?" required role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="finish-list" aria-describedby="finish-note"{% if errors.finish %} aria-invalid="true"{% endif %}><button class="clear-field icon-button" type="button" data-clear="finish" aria-label="Clear destination"><svg class="icon"><use href="#i-close"/></svg></button></div>
+                <ul class="suggest" id="finish-list" role="listbox" hidden></ul>
+                <div class="field-footer"><span class="pin-note" id="finish-note"></span><button class="pick-pin" type="button" data-pick="finish" aria-pressed="false"><svg class="icon"><use href="#i-pin"/></svg>Set on map</button></div>
+              </div>
+            </div>
+            <div class="fuel-field"><div><label for="fuel">Starting fuel</label><span>Already in your tank</span></div><div class="number-wrap"><input id="fuel" name="start_fuel_gallons" value="{{ form.start_fuel_gallons }}" type="number" min="0" max="{{ vehicle.tank }}" step="0.1" required><span>gal</span></div></div>
+            <p class="fuel-reach" id="fuel-reach"></p>
+            <details class="preferences"{% if errors.stop_penalty or errors.driver_hourly_cost %} open{% endif %}><summary><span>Route preferences</span><span id="preference-label">Balanced</span><svg class="icon"><use href="#i-chevron"/></svg></summary><div class="preferences-body">
+              <div class="presets" role="group" aria-label="Route cost preference"><button type="button" data-preset="balanced">Balanced</button><button type="button" data-preset="fuel">Lowest fuel cost</button></div>
+              <p>Balance fuel purchases with the value of your stops and driving time. These extra costs are used to compare routes, not added to your fuel bill.</p>
+              <div class="preference-fields"><div class="field"><label for="stop-penalty">Cost per stop ($)</label><input id="stop-penalty" name="stop_penalty" value="{{ form.stop_penalty }}" type="number" min="0" max="1000" step="0.01" required></div><div class="field"><label for="driver-cost">Driving cost ($/h)</label><input id="driver-cost" name="driver_hourly_cost" value="{{ form.driver_hourly_cost }}" type="number" min="0" max="1000" step="0.01" required></div></div>
+            </div></details>
+            <button class="primary-button" type="submit"><span>{% if plan %}Update fuel plan{% else %}Find my fuel stops{% endif %}</span><svg class="icon"><use href="#i-arrow"/></svg></button>
+            <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+          </form>
+        </details>
+        {% if not plan %}
+          <div class="examples"><span class="eyebrow">Try a trip</span><button type="button" data-example="chicago">Chicago <span>→</span> Denver <svg class="icon"><use href="#i-arrow"/></svg></button><button type="button" data-example="coast">New York <span>→</span> Los Angeles <svg class="icon"><use href="#i-arrow"/></svg></button></div>
+          <div class="vehicle-summary"><svg class="icon"><use href="#i-fuel"/></svg><span>{{ vehicle.range }} mi range <b>·</b> {{ vehicle.mpg }} mpg <b>·</b> {{ vehicle.reserve }} gal reserve</span></div>
+        {% endif %}
+      </section>
+      {% if plan %}
+        <section class="stops" aria-labelledby="stops-title"><div class="section-heading"><h2 id="stops-title">Your fuel stops</h2><span id="stop-count"></span></div><p class="section-description">Each leg shows the drive from your previous stop.</p><div class="excluded-stations" id="excluded-stations" hidden></div><ol class="stop-list" id="stop-list"></ol><div class="arrival" id="arrival"></div></section>
+        <section class="route-options" id="routes" aria-label="Compare routes" hidden></section>
+      {% endif %}
+      <section class="assumptions"><details{% if not plan %} open{% endif %}><summary><svg class="icon"><use href="#i-info"/></svg><span>About this estimate</span><svg class="icon chevron"><use href="#i-chevron"/></svg></summary><div class="assumptions-body"><p>Prices come from the supplied assessment dataset, not a live feed. Station pins show approximate town locations.</p><p>Routes use a standard driving profile. Truck restrictions, station detours, access and opening hours aren't verified. Check the address and suitability before traveling.</p>{% if plan %}<p id="assumption"></p>{% endif %}<p>Fuel cost covers purchases on this trip. Fuel already in the tank is excluded. Plan breaks and overnight stops separately.</p></div></details></section>
+      {% if plan %}<details class="performance"><summary>Request details <svg class="icon"><use href="#i-chevron"/></svg></summary><dl id="performance"></dl></details>{% endif %}
+      <footer class="sidebar-footer">Fuel planning, with clear assumptions.<span>Spotter · Assessment</span><small>Location data: US Census · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap contributors</a></small></footer>
+    </aside>
+    {% if plan %}<nav class="mobile-trip-nav" aria-label="Jump to trip section"><button type="button" data-jump="map-stage" aria-label="Jump to route map"><svg class="icon"><use href="#i-route"/></svg>Route map</button><button type="button" data-jump="stops" aria-label="Jump to fuel stops"><svg class="icon"><use href="#i-fuel"/></svg>Fuel stops <span>{{ plan.summary.number_of_stops }}</span></button></nav>{% endif %}
+    <section class="map-stage" id="route-map" aria-label="Route overview">
+      <div id="map" role="region" aria-label="Interactive route map"></div>
+      <div class="map-toolbar"><div class="views" role="group" aria-label="Map view"><button type="button" data-view="street" aria-pressed="true">Map</button><button type="button" data-view="satellite" aria-pressed="false">Satellite</button><button type="button" data-view="terrain" aria-pressed="false">Terrain</button></div><button type="button" class="whole" id="whole-route" title="Fit the whole route"><svg class="icon"><use href="#i-expand"/></svg><span>{% if plan %}Whole route{% else %}Reset view{% endif %}</span></button></div>
+      <div class="map-hint" id="map-hint" role="status" hidden></div>
+      <div class="map-unavailable" id="map-unavailable" role="status" hidden><strong>The map is unavailable.</strong><span>You can still plan your trip and read every fuel stop.</span></div>
+      {% if not plan %}<div class="map-welcome" id="map-welcome"><span class="welcome-icon"><svg class="icon"><use href="#i-route"/></svg></span><div><span class="eyebrow">Your route starts here</span><h2>See the route.<br>Know the fuel cost.</h2><p>Enter two US locations, or choose your points on the map.</p></div></div>{% endif %}
+      <div class="map-legend"><span><i class="legend-route"></i>Your route</span><span><i class="legend-stop"></i>Fuel stop</span><span class="legend-note">Approximate station locations</span></div>
+      {% if plan %}<section class="fuel-chart"><div class="chart-heading"><div><svg class="icon"><use href="#i-fuel"/></svg><h2>Fuel along your route</h2></div><span id="chart-caption"></span><button type="button" id="toggle-profile" class="icon-button" aria-expanded="true" aria-controls="profile" aria-label="Toggle fuel chart"><svg class="icon"><use href="#i-chevron"/></svg></button></div><figure class="profile" id="profile" aria-label="Fuel in the tank along the route"></figure></section>{% endif %}
+    </section>
+  </main>
+  <dialog id="details-dialog" class="details-dialog" aria-label="Stop details"><div class="dialog-handle"></div><button type="button" class="icon-button dialog-close" id="details-close" aria-label="Close details"><svg class="icon"><use href="#i-close"/></svg></button><div id="details-body"></div></dialog>
+  <dialog id="about-dialog" class="about-dialog" aria-labelledby="about-title"><button type="button" class="icon-button dialog-close" id="about-close" aria-label="Close explanation"><svg class="icon"><use href="#i-close"/></svg></button><span class="eyebrow">How it works</span><h2 id="about-title">A fuel plan you can inspect.</h2><ol><li><b>Choose your trip.</b> Search US cities or drop a start and destination pin.</li><li><b>Compare routes.</b> We compare available routes and fuel stops using your cost preferences.</li><li><b>Know what to buy.</b> Each stop shows the gallons to purchase, their cost, and the fuel left on arrival.</li></ol><p>The vehicle has a {{ vehicle.range }}-mile range at {{ vehicle.mpg }} mpg. Plans retain a {{ vehicle.reserve }}-gallon reserve. Prices and approximate station locations come from the assessment data; this is not live truck navigation.</p></dialog>
+  {% if plan %}{{ plan|json_script:"plan-data" }}{% endif %}
+  {{ form|json_script:"form-data" }}
+  <noscript><p class="noscript">Enable JavaScript to use the interactive map and fuel-stop details. The trip form and JSON API remain available.</p></noscript>
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="{% static 'routing/planner.js' %}" defer></script>
+</body>
+</html>

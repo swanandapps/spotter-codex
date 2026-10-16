@@ -1,0 +1,171 @@
+[
+  {
+    "start": "Chicago, IL",
+    "finish": "Denver, CO",
+    "route": {
+      "distance_miles": 1002.7,
+      "duration_hours": 17.79
+    },
+    "summary": {
+      "number_of_stops": 2,
+      "total_fuel_cost": 156.45,
+      "total_gallons_purchased": 55.27,
+      "total_gallons_used": 100.27,
+      "starting_fuel_gallons": 50.0,
+      "fuel_at_arrival_gallons": 5.0,
+      "average_price_paid": 2.831,
+      "fuel_cost_per_mile": 0.2831
+    },
+    "cold": {
+      "meta": {
+        "stations_on_route_considered": 202,
+        "routing_api_calls": 1,
+        "cache_hit": false,
+        "geocoding_api_calls": 0,
+        "road_cache_hit": false,
+        "routes_compared": 2,
+        "elapsed_ms": 3833.0
+      },
+      "wall_ms": 3856.7,
+      "wire_bytes": 29181,
+      "encoding": "gzip"
+    },
+    "warm_ms": [
+      62.5,
+      31.7,
+      36.8,
+      31.8,
+      34.2
+    ],
+    "warm_median_ms": 34.2,
+    "preference_change": {
+      "stations_on_route_considered": 202,
+      "routing_api_calls": 0,
+      "cache_hit": false,
+      "geocoding_api_calls": 0,
+      "road_cache_hit": true,
+      "routes_compared": 2,
+      "elapsed_ms": 125.5
+    },
+    "exclusion": {
+      "stations_on_route_considered": 201,
+      "routing_api_calls": 0,
+      "cache_hit": false,
+      "geocoding_api_calls": 0,
+      "road_cache_hit": true,
+      "routes_compared": 2,
+      "elapsed_ms": 123.4
+    },
+    "identity_bytes": 87225
+  },
+  {
+    "start": "New York, NY",
+    "finish": "Los Angeles, CA",
+    "route": {
+      "distance_miles": 2810.5,
+      "duration_hours": 50.41
+    },
+    "summary": {
+      "number_of_stops": 7,
+      "total_fuel_cost": 708.79,
+      "total_gallons_purchased": 236.05,
+      "total_gallons_used": 281.05,
+      "starting_fuel_gallons": 50.0,
+      "fuel_at_arrival_gallons": 5.0,
+      "average_price_paid": 3.003,
+      "fuel_cost_per_mile": 0.3003
+    },
+    "cold": {
+      "meta": {
+        "stations_on_route_considered": 406,
+        "routing_api_calls": 1,
+        "cache_hit": false,
+        "geocoding_api_calls": 0,
+        "road_cache_hit": false,
+        "routes_compared": 2,
+        "elapsed_ms": 4221.7
+      },
+      "wall_ms": 4251.2,
+      "wire_bytes": 76475,
+      "encoding": "gzip"
+    },
+    "warm_ms": [
+      41.5,
+      34.1,
+      35.6,
+      42.3,
+      37.0
+    ],
+    "warm_median_ms": 37.0,
+    "preference_change": {
+      "stations_on_route_considered": 406,
+      "routing_api_calls": 0,
+      "cache_hit": false,
+      "geocoding_api_calls": 0,
+      "road_cache_hit": true,
+      "routes_compared": 2,
+      "elapsed_ms": 295.1
+    },
+    "exclusion": {
+      "stations_on_route_considered": 405,
+      "routing_api_calls": 0,
+      "cache_hit": false,
+      "geocoding_api_calls": 0,
+      "road_cache_hit": true,
+      "routes_compared": 2,
+      "elapsed_ms": 304.5
+    },
+    "identity_bytes": 231985
+  },
+  {
+    "start": "Dallas, TX",
+    "finish": "Austin, TX",
+    "route": {
+      "distance_miles": 196.0,
+      "duration_hours": 3.5
+    },
+    "summary": {
+      "number_of_stops": 0,
+      "total_fuel_cost": 0.0,
+      "total_gallons_purchased": 0,
+      "total_gallons_used": 19.6,
+      "starting_fuel_gallons": 50.0,
+      "fuel_at_arrival_gallons": 30.4,
+      "average_price_paid": null,
+      "fuel_cost_per_mile": null
+    },
+    "cold": {
+      "meta": {
+        "stations_on_route_considered": 58,
+        "routing_api_calls": 1,
+        "cache_hit": false,
+        "geocoding_api_calls": 0,
+        "road_cache_hit": false,
+        "routes_compared": 1,
+        "elapsed_ms": 11065.1
+      },
+      "wall_ms": 11075.3,
+      "wire_bytes": 3930,
+      "encoding": "gzip"
+    },
+    "warm_ms": [
+      43.3,
+      32.0,
+      28.2,
+      31.6,
+      40.4
+    ],
+    "warm_median_ms": 32.0,
+    "preference_change": {
+      "stations_on_route_considered": 58,
+      "routing_api_calls": 0,
+      "cache_hit": false,
+      "geocoding_api_calls": 0,
+      "road_cache_hit": true,
+      "routes_compared": 1,
+      "elapsed_ms": 34.5
+    },
+    "exclusion": null,
+    "identity_bytes": 10558
+  }
+]
